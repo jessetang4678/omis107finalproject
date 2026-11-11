@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "auth/_field.html" import field %}
+{% block title %}Log in · Marketplace{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Log in</h1>
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ field(form.username, "username") }}
+    {{ field(form.password, "current-password") }}
+    {{ form.submit(class="button") }}
+  </form>
+  <p class="switch">New here? <a href="{{ url_for('auth.signup') }}">Create an account</a></p>
+</section>
+{% endblock %}

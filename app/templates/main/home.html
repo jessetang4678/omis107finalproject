@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Home · Marketplace{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Welcome, {{ current_user.display_name }}</h1>
+  <p>You're signed in as <strong>@{{ current_user.username }}</strong>, a <strong>{{ current_user.role }}</strong>.</p>
+  <p class="hint">The marketplace and other pages are coming soon.</p>
+</section>
+{% endblock %}
