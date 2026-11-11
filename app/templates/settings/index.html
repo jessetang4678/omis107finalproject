@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "auth/_field.html" import field %}
+{% from "_macros.html" import when %}
+{% block title %}Settings · Marketplace{% endblock %}
+{% block main_class %}content content-medium{% endblock %}
+{% block content %}
+<h1 class="page-title">Settings</h1>
+
+<section class="card stack">
+  <h2>Account</h2>
+  <dl class="facts">
+    <dt>Username</dt><dd>@{{ current_user.username }} <small class="hint">Usernames can't be changed.</small></dd>
+    <dt>Account type</dt><dd>{{ current_user.role|capitalize }}</dd>
+  </dl>
+</section>
+
+<section class="card stack">
+  <h2>Display name</h2>
+  <form method="post" novalidate>
+    {{ name_form.hidden_tag() }}
+    {{ field(name_form.display_name, "nickname") }}
+    {{ name_form.submit_name(class="button button-auto") }}
+  </form>
+</section>
+
+<section class="card stack">
+  <h2>Password</h2>
+  <form method="post" novalidate>
+    {{ password_form.hidden_tag() }}
+    {{ field(password_form.current_password, "current-password") }}
+    {{ field(password_form.new_password, "new-password") }}
+    {{ field(password_form.confirm_new_password, "new-password") }}
+    {{ password_form.submit_password(class="button button-auto") }}
+  </form>
+</section>
+
+{% if warnings %}
+<section class="card stack">
+  <h2>Warnings on your account</h2>
+  <ul class="plain-list">
+    {% for w in warnings %}<li>{{ when(w.created_at) }}: {{ w.reason }}</li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

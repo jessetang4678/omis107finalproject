@@ -4,6 +4,12 @@
 <section class="card">
   <h1>Welcome, {{ current_user.display_name }}</h1>
   <p>You're signed in as <strong>@{{ current_user.username }}</strong>, a <strong>{{ current_user.role }}</strong>.</p>
-  <p class="hint">The marketplace and other pages are coming soon.</p>
+  <ul class="home-links">
+    <li><a href="{{ url_for('market.index') }}">Browse the marketplace</a></li>
+    {% if current_user.role in ('buyer', 'seller') %}<li><a href="{{ url_for('market.inbox') }}">Your messages</a></li>{% endif %}
+    {% if current_user.role == 'seller' %}<li><a href="{{ url_for('seller.new_listing') }}">Create a listing</a></li>{% endif %}
+    {% if current_user.role == 'admin' %}<li><a href="{{ url_for('admin.index') }}">Review open reports</a></li>{% endif %}
+    <li><a href="{{ url_for('settings.index') }}">Account settings</a></li>
+  </ul>
 </section>
 {% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import money, status_badge, when, post_button %}
+{% block title %}Seller portal · Marketplace{% endblock %}
+{% block main_class %}content content-wide{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">Your listings</h1>
+  <a class="button button-auto" href="{{ url_for('seller.new_listing') }}">Create listing</a>
+</div>
+{% if listings %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Item</th><th>Price</th><th>Status</th><th>Listed</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+      <tbody>
+        {% for listing in listings %}
+          <tr>
+            <td><a href="{{ url_for('market.listing_detail', listing_id=listing.id) }}">{{ listing.title }}</a></td>
+            <td>{{ money(listing.price) }}</td>
+            <td>{{ status_badge(listing.status) }}</td>
+            <td>{{ when(listing.created_at) }}</td>
+            <td class="row-actions">
+              {% if listing.status == 'removed' %}
+                <span class="hint">Removed by a moderator</span>
+              {% else %}
+                <a href="{{ url_for('seller.edit_listing', listing_id=listing.id) }}">Edit</a>
+                {{ post_button(url_for('seller.toggle_sold', listing_id=listing.id), "Mark active" if listing.status == 'sold' else "Mark sold") }}
+                {{ post_button(url_for('seller.delete_listing', listing_id=listing.id), "Delete", "link-button danger", confirm="Delete this listing? This can't be undone.") }}
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="card empty"><p>You haven't listed anything yet. Create a listing to start selling.</p></div>
+{% endif %}
+{% endblock %}

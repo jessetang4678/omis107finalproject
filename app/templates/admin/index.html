@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge, when %}
+{% block title %}Reports · Admin · Marketplace{% endblock %}
+{% block main_class %}content content-wide{% endblock %}
+{% block content %}
+<h1 class="page-title">Admin portal</h1>
+{% include "admin/_nav.html" %}
+<nav class="filter-tabs" aria-label="Report status">
+  {% for value, label in [('open', 'Open'), ('resolved', 'Resolved'), ('dismissed', 'Dismissed'), ('all', 'All')] %}
+    <a href="{{ url_for('admin.index', status=value) }}"{% if status == value %} aria-current="page"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</nav>
+{% if reports %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>#</th><th>Reported user</th><th>Reason</th><th>About</th><th>Reported by</th><th>Received</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for r in reports %}
+          <tr>
+            <td><a href="{{ url_for('admin.report_detail', report_id=r.id) }}">#{{ r.id }}</a></td>
+            <td>@{{ r.target_user.username }}</td>
+            <td>{{ r.reason_label }}</td>
+            <td>{% if r.listing %}Listing{% elif r.review %}Review{% else %}User{% endif %}</td>
+            <td>@{{ r.reporter.username }}</td>
+            <td>{{ when(r.created_at) }}</td>
+            <td>{{ status_badge(r.status) }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="card empty"><p>{{ "No open reports. You're all caught up." if status == 'open' else "No reports here." }}</p></div>
+{% endif %}
+{% endblock %}

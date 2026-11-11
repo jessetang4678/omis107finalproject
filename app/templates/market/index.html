@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "_macros.html" import money, shipping %}
+{% block title %}Browse · Marketplace{% endblock %}
+{% block main_class %}content content-wide{% endblock %}
+{% block content %}
+<div class="market-layout">
+  <form method="get" class="card filters" aria-label="Search and filter listings">
+    <div class="field">{{ form.q.label }}{{ form.q(class="input", placeholder="Search titles and descriptions") }}</div>
+    <div class="field">{{ form.category.label }}{{ form.category(class="input") }}</div>
+    <div class="field-row">
+      <div class="field">{{ form.min_price.label }}{{ form.min_price(class="input", inputmode="decimal") }}</div>
+      <div class="field">{{ form.max_price.label }}{{ form.max_price(class="input", inputmode="decimal") }}</div>
+    </div>
+    {% for error in form.min_price.errors + form.max_price.errors %}<small class="error">{{ error }}</small>{% endfor %}
+    <div class="field">{{ form.location.label }}{{ form.location(class="input", placeholder="City or neighborhood") }}</div>
+    <div class="field field-check"><label>{{ form.no_shipping_fee() }} {{ form.no_shipping_fee.label.text }}</label></div>
+    <div class="field">{{ form.sort.label }}{{ form.sort(class="input") }}</div>
+    <button type="submit" class="button">Apply filters</button>
+    {% if filter_args %}<a class="clear-link" href="{{ url_for('market.index') }}">Clear filters</a>{% endif %}
+  </form>
+
+  <section aria-label="Listings">
+    <p class="result-count">{{ page.total }} listing{{ "" if page.total == 1 else "s" }}</p>
+    {% if page.items %}
+      <ul class="listing-grid">
+        {% for listing in page.items %}
+          <li class="listing-card">
+            <a href="{{ url_for('market.listing_detail', listing_id=listing.id) }}">
+              <img src="{{ url_for('market.listing_image', listing_id=listing.id) }}" alt="" loading="lazy">
+              <span class="listing-price">{{ money(listing.price) }}</span>
+              <span class="listing-title">{{ listing.title }}</span>
+              <span class="listing-meta">{{ listing.location }} · {{ shipping(listing) }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+      {% if page.pages > 1 %}
+        <nav class="pager" aria-label="Pages">
+          {% if page.has_prev %}<a href="{{ url_for('market.index', page=page.prev_num, **filter_args) }}">Previous</a>{% endif %}
+          <span>Page {{ page.page }} of {{ page.pages }}</span>
+          {% if page.has_next %}<a href="{{ url_for('market.index', page=page.next_num, **filter_args) }}">Next</a>{% endif %}
+        </nav>
+      {% endif %}
+    {% else %}
+      <div class="card empty">
+        {% if filter_args %}
+          <p>No listings match these filters. Try a wider price range or clear the filters.</p>
+        {% else %}
+          <p>No listings yet.{% if current_user.role == 'seller' %} <a href="{{ url_for('seller.new_listing') }}">Create the first one</a>.{% endif %}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

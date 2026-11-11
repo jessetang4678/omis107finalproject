@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Users · Admin · Marketplace{% endblock %}
+{% block main_class %}content content-wide{% endblock %}
+{% block content %}
+<h1 class="page-title">Admin portal</h1>
+{% include "admin/_nav.html" %}
+<form method="get" class="search-row" role="search">
+  <label for="q" class="visually-hidden">Search users</label>
+  <input id="q" name="q" class="input" value="{{ q }}" placeholder="Username or display name">
+  <button type="submit" class="button button-auto">Search</button>
+</form>
+{% if q %}
+  {% if results %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>User</th><th>Role</th><th>Joined</th><th>Standing</th></tr></thead>
+        <tbody>
+          {% for u in results %}
+            <tr>
+              <td><a href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ u.display_name }}</a> <span class="hint">@{{ u.username }}</span></td>
+              <td>{{ u.role or "not chosen" }}</td>
+              <td>{{ u.created_at.strftime("%b %d, %Y") }}</td>
+              <td>{% if bans[u.id] %}<span class="badge badge-removed">Banned</span>{% else %}<span class="badge badge-active">Good</span>{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="hint">No users match “{{ q }}”.</p>
+  {% endif %}
+{% endif %}
+{% endblock %}

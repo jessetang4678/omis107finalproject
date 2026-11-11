@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "_macros.html" import money, shipping, status_badge, when, post_button %}
+{% block title %}{{ listing.title }} · Marketplace{% endblock %}
+{% block main_class %}content content-wide{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('market.index') }}">Back to listings</a></p>
+<article class="listing-detail">
+  <img class="listing-photo" src="{{ url_for('market.listing_image', listing_id=listing.id) }}" alt="Photo of {{ listing.title }}">
+  <div class="card stack">
+    {% if listing.status != 'active' %}{{ status_badge(listing.status) }}{% endif %}
+    <h1>{{ listing.title }}</h1>
+    <p class="detail-price">{{ money(listing.price) }} <span class="hint">{{ shipping(listing) }}</span></p>
+    {% if listing.status == 'removed' and listing.removed_reason %}
+      <p class="flash flash-error">Removed by a moderator: {{ listing.removed_reason }}</p>
+    {% endif %}
+    <dl class="facts">
+      <dt>Category</dt><dd>{{ listing.category_label }}</dd>
+      <dt>Location</dt><dd>{{ listing.location }}</dd>
+      <dt>Listed</dt><dd>{{ when(listing.created_at) }}</dd>
+      <dt>Seller</dt>
+      <dd>
+        <a href="{{ url_for('market.seller_profile', seller_id=listing.seller_id) }}">{{ listing.seller.display_name }}</a>
+        {% if seller_rating.average %}<span class="hint">{{ seller_rating.average }} ★ from {{ seller_rating.count }} review{{ "" if seller_rating.count == 1 else "s" }}</span>{% endif %}
+      </dd>
+    </dl>
+    <p class="description">{{ listing.description }}</p>
+
+    <div class="actions">
+      {% if current_user.role == 'buyer' and listing.status == 'active' %}
+        <a class="button button-auto" href="{{ url_for('market.conversation', listing_id=listing.id, buyer_id=current_user.id) }}">Message seller</a>
+      {% endif %}
+      {% if current_user.id == listing.seller_id and listing.status != 'removed' %}
+        <a class="button button-auto" href="{{ url_for('seller.edit_listing', listing_id=listing.id) }}">Edit listing</a>
+      {% endif %}
+      {% if current_user.role in ('buyer', 'seller') and current_user.id != listing.seller_id %}
+        <a href="{{ url_for('market.report', user=listing.seller_id, listing=listing.id) }}">Report this listing</a>
+      {% endif %}
+    </div>
+
+    {% if current_user.role == 'admin' %}
+      <div class="admin-box">
+        <a href="{{ url_for('admin.user_detail', user_id=listing.seller_id) }}">Moderate this seller</a>
+        {% if listing.status != 'removed' %}
+          <form method="post" action="{{ url_for('admin.remove_listing', listing_id=listing.id) }}" class="stack-sm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="remove-reason">Reason for removal</label>
+            <input id="remove-reason" name="reason" class="input" maxlength="1000" required>
+            <button type="submit" class="button button-danger button-auto">Remove listing</button>
+          </form>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</article>
+{% endblock %}
