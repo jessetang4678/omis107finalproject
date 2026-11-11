@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "auth/_field.html" import field %}
+{% block title %}Conversation · Marketplace{% endblock %}
+{% block main_class %}content content-medium{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('admin.user_detail', user_id=buyer.id) if read_only else url_for('market.inbox') }}">Back</a></p>
+<header class="stack-sm">
+  <h1 class="page-title">
+    {% if read_only %}{{ buyer.display_name }} and {{ listing.seller.display_name }}{% else %}{{ other_user.display_name }}{% endif %}
+  </h1>
+  <p class="hint">About <a href="{{ url_for('market.listing_detail', listing_id=listing.id) }}">{{ listing.title }}</a>
+    {% if read_only %} · Viewing as a moderator{% endif %}</p>
+  {% if not read_only %}
+    <a href="{{ url_for('market.report', user=other_user.id) }}">Report {{ other_user.display_name }}</a>
+  {% endif %}
+</header>
+
+<ol class="thread">
+  {% for msg in messages %}
+    <li class="bubble {{ 'mine' if msg.sender_id == current_user.id else 'theirs' }}">
+      <span class="bubble-meta">{{ msg.sender.display_name }} · {{ msg.created_at.strftime("%b %d, %H:%M") }} UTC</span>
+      <p>{{ msg.body }}</p>
+    </li>
+  {% else %}
+    <li class="hint">No messages yet. Ask the seller about the item.</li>
+  {% endfor %}
+</ol>
+
+{% if can_send %}
+  <form method="post" class="card" novalidate>
+    {{ form.hidden_tag() }}
+    {{ field(form.body) }}
+    {{ form.submit(class="button button-auto") }}
+  </form>
+{% elif not read_only %}
+  <p class="hint">This listing is no longer active, so you can't send new messages.</p>
+{% endif %}
+{% endblock %}

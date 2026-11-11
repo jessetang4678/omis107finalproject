@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "auth/_field.html" import field %}
+{% block title %}Report · Marketplace{% endblock %}
+{% block content %}
+<section class="card stack">
+  <h1>Report {{ target.display_name }}</h1>
+  {% if listing %}<p class="hint">About the listing {{ listing.title }}</p>{% endif %}
+  {% if review %}<p class="hint">About their review: {{ review.body|truncate(100) }}</p>{% endif %}
+  <p>Moderators review every report. {{ target.display_name }} won't see who reported them.</p>
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ field(form.reason) }}
+    {{ field(form.details) }}
+    {{ form.submit(class="button") }}
+  </form>
+</section>
+{% endblock %}

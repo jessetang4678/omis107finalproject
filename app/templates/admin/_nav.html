@@ -1,0 +1,4 @@
+<nav class="subnav" aria-label="Admin">
+  <a href="{{ url_for('admin.index') }}"{% if request.endpoint in ('admin.index', 'admin.report_detail') %} aria-current="page"{% endif %}>Reports{% if open_count is defined and open_count %} ({{ open_count }} open){% endif %}</a>
+  <a href="{{ url_for('admin.users') }}"{% if request.endpoint in ('admin.users', 'admin.user_detail') %} aria-current="page"{% endif %}>Users</a>
+</nav>

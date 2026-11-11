@@ -31,6 +31,10 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
+    from app.market import register_market
+
+    register_market(app)
+
     with app.app_context():
         from app import models  # noqa: F401  (registers models with SQLAlchemy)
 

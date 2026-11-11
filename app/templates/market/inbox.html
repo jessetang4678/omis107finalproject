@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "_macros.html" import when %}
+{% block title %}Messages · Marketplace{% endblock %}
+{% block main_class %}content content-medium{% endblock %}
+{% block content %}
+<h1 class="page-title">Messages</h1>
+{% if conversations %}
+  <ul class="conversation-list">
+    {% for msg in conversations %}
+      {% set other = msg.listing.seller if current_user.id == msg.buyer_id else msg.buyer %}
+      <li>
+        <a class="card conversation-row" href="{{ url_for('market.conversation', listing_id=msg.listing_id, buyer_id=msg.buyer_id) }}">
+          <span><strong>{{ other.display_name }}</strong> about {{ msg.listing.title }}</span>
+          <span class="hint">{{ "You: " if msg.sender_id == current_user.id }}{{ msg.body|truncate(80) }}</span>
+          <span class="hint">{{ when(msg.created_at) }}</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="card empty">
+    {% if current_user.role == 'buyer' %}
+      <p>No messages yet. Open a listing and choose Message seller to ask about it.</p>
+    {% else %}
+      <p>No messages yet. Buyers' questions about your listings will show up here.</p>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

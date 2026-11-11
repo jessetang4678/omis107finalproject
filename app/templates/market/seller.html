@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% from "auth/_field.html" import field %}
+{% from "_macros.html" import money, stars, when, post_button %}
+{% block title %}{{ seller.display_name }} · Marketplace{% endblock %}
+{% block main_class %}content content-wide{% endblock %}
+{% block content %}
+<header class="profile-head">
+  <h1>{{ seller.display_name }}</h1>
+  <p class="hint">@{{ seller.username }} · Seller since {{ seller.created_at.strftime("%B %Y") }}
+    {% if rating.average %} · {{ rating.average }} ★ from {{ rating.count }} review{{ "" if rating.count == 1 else "s" }}{% endif %}</p>
+  {% if current_user.role in ('buyer', 'seller') and current_user.id != seller.id %}
+    <a href="{{ url_for('market.report', user=seller.id) }}">Report this seller</a>
+  {% elif current_user.role == 'admin' %}
+    <a href="{{ url_for('admin.user_detail', user_id=seller.id) }}">Moderate this seller</a>
+  {% endif %}
+</header>
+
+<h2>Listings</h2>
+{% if listings %}
+  <ul class="listing-grid">
+    {% for listing in listings %}
+      <li class="listing-card">
+        <a href="{{ url_for('market.listing_detail', listing_id=listing.id) }}">
+          <img src="{{ url_for('market.listing_image', listing_id=listing.id) }}" alt="" loading="lazy">
+          <span class="listing-price">{{ money(listing.price) }}</span>
+          <span class="listing-title">{{ listing.title }}</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="hint">No active listings.</p>
+{% endif %}
+
+<h2>Reviews</h2>
+{% if review_form %}
+  <section class="card stack review-form">
+    <h3>{{ "Edit your review" if my_review else "Review this seller" }}</h3>
+    <form method="post" action="{{ url_for('market.save_review', seller_id=seller.id) }}" novalidate>
+      {{ review_form.hidden_tag() }}
+      {{ field(review_form.rating) }}
+      {{ field(review_form.body) }}
+      {{ review_form.submit(class="button button-auto", value="Update review" if my_review else "Post review") }}
+    </form>
+  </section>
+{% elif review_blocked_reason %}
+  <p class="hint">{{ review_blocked_reason }}</p>
+{% endif %}
+
+{% if reviews %}
+  <ul class="review-list">
+    {% for review in reviews %}
+      <li class="card review{% if review.status == 'removed' %} is-removed{% endif %}">
+        <p>{{ stars(review.rating) }} <strong>{{ review.buyer.display_name }}</strong> <span class="hint">{{ when(review.created_at) }}</span>
+          {% if review.status == 'removed' %}<span class="badge badge-removed">Removed</span>{% endif %}</p>
+        <p>{{ review.body }}</p>
+        <div class="actions">
+          {% if current_user.id == seller.id and review.status == 'active' %}
+            <a href="{{ url_for('market.report', user=review.buyer_id, review=review.id) }}">Report this review</a>
+          {% endif %}
+          {% if current_user.role == 'admin' and review.status == 'active' %}
+            {{ post_button(url_for('admin.remove_review', review_id=review.id), "Remove review", confirm="Remove this review?") }}
+          {% endif %}
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="hint">No reviews yet.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "auth/_field.html" import field %}
+{% block title %}{{ "Edit listing" if listing else "Create listing" }} · Marketplace{% endblock %}
+{% block main_class %}content content-medium{% endblock %}
+{% block content %}
+<section class="card stack">
+  <h1>{{ "Edit listing" if listing else "Create a listing" }}</h1>
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+    {{ field(form.title) }}
+    {{ field(form.description) }}
+    {{ field(form.category) }}
+    <div class="field-row">
+      {{ field(form.price) }}
+      {{ field(form.shipping_fee) }}
+    </div>
+    {{ field(form.location) }}
+    {% if listing %}
+      <p class="hint">Current photo:</p>
+      <img class="thumb" src="{{ url_for('market.listing_image', listing_id=listing.id) }}" alt="Current photo of {{ listing.title }}">
+    {% endif %}
+    {{ field(form.photo) }}
+    <small class="hint">JPG, PNG, or WebP, up to 2 MB.{% if listing %} Leave empty to keep the current photo.{% endif %}</small>
+    {{ form.submit(class="button", value="Save changes" if listing else "Publish listing") }}
+  </form>
+</section>
+{% endblock %}

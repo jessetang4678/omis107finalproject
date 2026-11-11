@@ -5,10 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Marketplace{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
 </head>
 <body>
   <header class="topbar">
     <span class="brand">Marketplace</span>
+    {% if current_user.is_authenticated and current_user.role %}
+      <nav class="mainnav" aria-label="Main">
+        <a href="{{ url_for('market.index') }}">Browse</a>
+        {% if current_user.role in ('buyer', 'seller') %}<a href="{{ url_for('market.inbox') }}">Messages</a>{% endif %}
+        {% if current_user.role == 'seller' %}<a href="{{ url_for('seller.index') }}">Seller portal</a>{% endif %}
+        {% if current_user.role == 'admin' %}<a href="{{ url_for('admin.index') }}">Admin portal</a>{% endif %}
+        <a href="{{ url_for('settings.index') }}">Settings</a>
+      </nav>
+    {% endif %}
     {% if current_user.is_authenticated %}
       <div class="topbar-user">
         <span>{{ current_user.display_name }}{% if current_user.role %} · {{ current_user.role|capitalize }}{% endif %}</span>
@@ -20,7 +30,16 @@
     {% endif %}
   </header>
 
-  <main class="content">
+  <main class="{% block main_class %}content{% endblock %}">
+    {% for warning in unseen_warnings %}
+      <div class="flash flash-error warning-banner">
+        <span><strong>A moderator warned you:</strong> {{ warning.reason }}</span>
+        <form method="post" action="{{ url_for('settings.acknowledge_warning', warning_id=warning.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="link-button">Got it</button>
+        </form>
+      </div>
+    {% endfor %}
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
         <div class="flash flash-{{ category }}">{{ message }}</div>

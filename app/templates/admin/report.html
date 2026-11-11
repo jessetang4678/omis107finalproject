@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% from "auth/_field.html" import field %}
+{% from "_macros.html" import status_badge, when, checkbox %}
+{% block title %}Report #{{ report.id }} · Admin · Marketplace{% endblock %}
+{% block main_class %}content content-wide{% endblock %}
+{% block content %}
+<h1 class="page-title">Report #{{ report.id }} {{ status_badge(report.status) }}</h1>
+{% include "admin/_nav.html" %}
+<div class="two-col">
+  <section class="card stack">
+    <h2>{{ report.reason_label }}</h2>
+    <dl class="facts">
+      <dt>Reported user</dt>
+      <dd><a href="{{ url_for('admin.user_detail', user_id=target.id) }}">{{ target.display_name }} @{{ target.username }}</a> · {{ target.role }}
+        {% if ban %}<span class="badge badge-removed">Banned</span>{% endif %}</dd>
+      <dt>Reported by</dt><dd><a href="{{ url_for('admin.user_detail', user_id=report.reporter_id) }}">@{{ report.reporter.username }}</a></dd>
+      <dt>Received</dt><dd>{{ when(report.created_at) }}</dd>
+      {% if report.listing %}
+        <dt>Listing</dt><dd><a href="{{ url_for('market.listing_detail', listing_id=report.listing.id) }}">{{ report.listing.title }}</a> {{ status_badge(report.listing.status) }}</dd>
+      {% endif %}
+      {% if report.review %}
+        <dt>Review</dt><dd>{{ report.review.rating }} ★ “{{ report.review.body }}” {{ status_badge(report.review.status) }}</dd>
+      {% endif %}
+    </dl>
+    <h3>Details from the reporter</h3>
+    <p class="description">{{ report.details }}</p>
+    {% if other_reports %}
+      <h3>Other reports about this user</h3>
+      <ul class="plain-list">
+        {% for r in other_reports %}<li><a href="{{ url_for('admin.report_detail', report_id=r.id) }}">#{{ r.id }}</a> {{ r.reason_label }} · {{ r.status }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+
+  <section class="card stack">
+    {% if report.status == 'open' %}
+      <h2>Decide</h2>
+      <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        {{ field(form.outcome) }}
+        {{ field(form.ban_days) }}
+        {% if report.listing or report.review %}{{ checkbox(form.remove_content) }}{% endif %}
+        {{ field(form.note) }}
+        {{ form.submit(class="button") }}
+      </form>
+    {% else %}
+      <h2>Closed</h2>
+      <p>{{ report.status|capitalize }} by @{{ report.resolved_by.username }} on {{ when(report.resolved_at) }}.</p>
+      <p><a href="{{ url_for('admin.user_detail', user_id=target.id) }}">See notes and history for @{{ target.username }}</a></p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

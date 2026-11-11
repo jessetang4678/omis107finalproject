@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% from "auth/_field.html" import field %}
+{% from "_macros.html" import money, status_badge, when, stars %}
+{% block title %}@{{ user.username }} · Admin · Marketplace{% endblock %}
+{% block main_class %}content content-wide{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ user.display_name }} <span class="hint">@{{ user.username }}</span></h1>
+{% include "admin/_nav.html" %}
+<p>
+  {{ (user.role or "no role")|capitalize }} · joined {{ when(user.created_at) }} ·
+  {% if ban %}
+    <span class="badge badge-removed">{{ ban.label }}</span>
+    {% if ban.expires_at %} until {{ ban.expires_at.strftime("%b %d, %Y %H:%M") }} UTC{% endif %}
+  {% else %}<span class="badge badge-active">Good standing</span>{% endif %}
+</p>
+
+<div class="two-col">
+  <div class="stack">
+    {% if not is_admin_target %}
+      <section class="card stack">
+        <h2>Moderation action</h2>
+        <form method="post" novalidate>
+          {{ action_form.hidden_tag() }}
+          {{ field(action_form.action) }}
+          {{ field(action_form.ban_days) }}
+          {{ field(action_form.reason) }}
+          {{ action_form.submit_action(class="button") }}
+        </form>
+      </section>
+    {% else %}
+      <p class="hint">Admins can't be moderated.</p>
+    {% endif %}
+
+    <section class="card stack">
+      <h2>Add a note</h2>
+      <p class="hint">Notes are only visible to admins.</p>
+      <form method="post" novalidate>
+        {{ note_form.hidden_tag() }}
+        {{ field(note_form.body) }}
+        {{ note_form.submit_note(class="button") }}
+      </form>
+    </section>
+  </div>
+
+  <div class="stack">
+    <section class="card stack">
+      <h2>Moderation notes</h2>
+      {% for n in notes %}
+        <div class="note"><p class="hint">@{{ n.admin.username }} · {{ when(n.created_at) }}{% if n.report_id %} · <a href="{{ url_for('admin.report_detail', report_id=n.report_id) }}">report #{{ n.report_id }}</a>{% endif %}</p><p>{{ n.body }}</p></div>
+      {% else %}<p class="hint">No notes yet.</p>{% endfor %}
+    </section>
+
+    <section class="card stack">
+      <h2>Action history</h2>
+      {% for a in actions %}
+        <div class="note"><p><strong>{{ a.label }}</strong>{% if a.expires_at %} until {{ a.expires_at.strftime("%b %d, %Y") }}{% endif %} <span class="hint">by @{{ a.admin.username }} · {{ when(a.created_at) }}</span></p><p>{{ a.reason }}</p></div>
+      {% else %}<p class="hint">No warnings or bans.</p>{% endfor %}
+    </section>
+
+    <section class="card stack">
+      <h2>Reports against this user</h2>
+      {% for r in reports %}
+        <p><a href="{{ url_for('admin.report_detail', report_id=r.id) }}">#{{ r.id }}</a> {{ r.reason_label }} {{ status_badge(r.status) }}</p>
+      {% else %}<p class="hint">None.</p>{% endfor %}
+    </section>
+
+    {% if listings %}
+      <section class="card stack">
+        <h2>Listings</h2>
+        {% for l in listings %}<p><a href="{{ url_for('market.listing_detail', listing_id=l.id) }}">{{ l.title }}</a> {{ money(l.price) }} {{ status_badge(l.status) }}</p>{% endfor %}
+      </section>
+    {% endif %}
+
+    {% if reviews %}
+      <section class="card stack">
+        <h2>Reviews written</h2>
+        {% for rv in reviews %}<p>{{ stars(rv.rating) }} on <a href="{{ url_for('market.seller_profile', seller_id=rv.seller_id) }}">@{{ rv.seller.username }}</a> {{ status_badge(rv.status) }}<br>{{ rv.body }}</p>{% endfor %}
+      </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

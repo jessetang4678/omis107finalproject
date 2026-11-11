@@ -1,0 +1,25 @@
+{% macro money(value) %}${{ "{:,.2f}".format(value) }}{% endmacro %}
+
+{% macro shipping(listing) %}
+  {%- if listing.shipping_fee %}+ ${{ "{:,.2f}".format(listing.shipping_fee) }} shipping{% else %}No shipping fee{% endif -%}
+{% endmacro %}
+
+{% macro stars(rating) %}<span class="stars" aria-label="{{ rating }} out of 5 stars">{{ "★" * rating }}{{ "☆" * (5 - rating) }}</span>{% endmacro %}
+
+{% macro when(dt) %}<time datetime="{{ dt.isoformat() }}Z">{{ dt.strftime("%b %d, %Y") }}</time>{% endmacro %}
+
+{% macro status_badge(status) %}<span class="badge badge-{{ status }}">{{ status|capitalize }}</span>{% endmacro %}
+
+{% macro checkbox(f) %}
+  <div class="field field-check">
+    <label>{{ f() }} {{ f.label.text }}</label>
+    {% for error in f.errors %}<small class="error">{{ error }}</small>{% endfor %}
+  </div>
+{% endmacro %}
+
+{% macro post_button(action, label, cls="link-button", confirm=None) %}
+  <form method="post" action="{{ action }}" class="inline-form"{% if confirm %} onsubmit="return confirm('{{ confirm }}')"{% endif %}>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="{{ cls }}">{{ label }}</button>
+  </form>
+{% endmacro %}
